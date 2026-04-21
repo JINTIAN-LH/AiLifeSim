@@ -1,0 +1,15 @@
+{
+  "name": "ai-life-sim-workspace",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev:backend": "npm --prefix backend run dev",
+    "start:backend": "npm --prefix backend run start",
+    "dev:frontend": "npm --prefix frontend run dev",
+    "build:frontend": "npm --prefix frontend run build",
+    "check": "npm --prefix frontend run build && node -e \"require('./backend/app'); console.log('app-load-ok')\"",
+    "start:backend:ps": "powershell -ExecutionPolicy Bypass -File ./scripts/start-backend.ps1",
+    "start:frontend:ps": "powershell -ExecutionPolicy Bypass -File ./scripts/start-frontend.ps1",
+    "smoke": "powershell -ExecutionPolicy Bypass -File ./scripts/smoke.ps1"
+  }
+}
