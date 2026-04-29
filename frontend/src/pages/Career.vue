@@ -103,6 +103,32 @@ onMounted(async () => {
 
       <article class="card" style="grid-column: span 3;">
         <p style="margin: 0;">考核依据：智力 {{ career.intelligence }} + 魅力 {{ career.charm }} + 心情 {{ career.mood }} - 压力 {{ career.stress }}</p>
+        <p class="page-hint" style="margin-top: 8px;">
+          参考分 = {{ (career.intelligence || 0) + (career.charm || 0) + (career.mood || 0) - (career.stress || 0) }}，
+          通过门槛 120 分。<br/>
+          每项属性满值100。智力/魅力/心情越高越好，压力越低越好。
+        </p>
+      </article>
+
+      <article class="card" style="grid-column: span 3;">
+        <h4 style="margin-top: 0;">属性提升建议</h4>
+        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;">
+          <div>
+            <div class="kpi-label">智力</div>
+            <div class="kpi-value">{{ career.intelligence || 0 }}</div>
+            <p class="page-hint">学习、读书、科技比赛可提升</p>
+          </div>
+          <div>
+            <div class="kpi-label">魅力</div>
+            <div class="kpi-value">{{ career.charm || 0 }}</div>
+            <p class="page-hint">社交、送礼、坦诚沟通可提升</p>
+          </div>
+          <div>
+            <div class="kpi-label">压力</div>
+            <div class="kpi-value">{{ career.stress || 0 }}</div>
+            <p class="page-hint">休闲、减压物品、社交可降低</p>
+          </div>
+        </div>
       </article>
     </div>
 

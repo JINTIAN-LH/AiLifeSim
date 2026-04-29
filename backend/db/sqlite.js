@@ -38,7 +38,7 @@ function all(sql, params = []) {
   });
 }
 
-function initDb() {
+async function initDb() {
   db.serialize(() => {
     db.run(`CREATE TABLE IF NOT EXISTS characters (
       id TEXT PRIMARY KEY,
@@ -165,6 +165,28 @@ function initDb() {
       `INSERT OR IGNORE INTO npcs (id, name, role_type, personality, mood_state, unlocked, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)`,
       ['neighbor_01', '林叔', '邻居', '稳重、健谈', 'calm', 1, now]
     );
+    db.run(
+      `INSERT OR IGNORE INTO npcs (id, name, role_type, personality, mood_state, unlocked, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)`,
+      ['classmate_01', '小梅', '同学', '开朗、热情', 'energetic', 1, now]
+    );
+    db.run(
+      `INSERT OR IGNORE INTO npcs (id, name, role_type, personality, mood_state, unlocked, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)`,
+      ['mentor_01', '张老师', '导师', '严慈、博学', 'calm', 1, now]
+    );
+    db.run(
+      `INSERT OR IGNORE INTO npcs (id, name, role_type, personality, mood_state, unlocked, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)`,
+      ['partner_01', '阿薇', '伴侣', '温柔、体贴', 'calm', 1, now]
+    );
+    db.run(
+      `INSERT OR IGNORE INTO npcs (id, name, role_type, personality, mood_state, unlocked, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)`,
+      ['rival_01', '阿豪', '对手', '上进、不服输', 'energetic', 1, now]
+    );
+  });
+
+  // Run migrations after base schema is ensured
+  setImmediate(async () => {
+    const { runMigrations } = require('./migrations');
+    await runMigrations(db);
   });
 }
 

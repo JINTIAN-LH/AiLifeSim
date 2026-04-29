@@ -2,6 +2,7 @@ const express = require('express');
 const { nanoid } = require('nanoid');
 const { get, all, run } = require('../db/sqlite');
 const { ensureDailyTasks, processDailyLogin } = require('../services/progressService');
+const { BABY_STATS, applyFamilyBackground, FAMILY_BACKGROUNDS } = require('../services/lifeStageService');
 
 const router = express.Router();
 
@@ -57,29 +58,59 @@ function endingTextByType(type, name) {
 }
 
 router.post('/create', async (req, res) => {
-  const { name, gender, avatar, personality } = req.body || {};
+  const { name, gender, avatar, personality, familyBackground } = req.body || {};
   if (!name) {
     return res.status(400).json({ code: 400, message: 'name required', data: null });
   }
   try {
     const id = nanoid();
     const now = new Date().toISOString();
+    const bgKey = familyBackground || 'ordinary';
+    const birthSeason = ['spring', 'summer', 'autumn', 'winter'][Math.floor(Math.random() * 4)];
+
+    let stats = applyFamilyBackground(BABY_STATS, bgKey);
+
     await run(
-      `INSERT INTO characters (id, name, gender, avatar, personality, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?)`,
-      [id, name, gender || '', avatar || '', personality || '', now, now]
+      `INSERT INTO characters (id, name, gender, avatar, personality,
+        mood, health, stress, money, charm, intelligence,
+        job, job_level, age, quarters_lived, life_stage, is_alive,
+        birth_season, generation,
+        peak_mood, peak_health, peak_money, peak_intelligence, peak_charm,
+        created_at, updated_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [
+        id, name, gender || '', avatar || '', personality || '',
+        stats.mood, stats.health, stats.stress, stats.money, stats.charm, stats.intelligence,
+        'unemployed', 'entry', 0, 0, '婴幼儿期', 1,
+        birthSeason, 1,
+        stats.mood, stats.health, stats.money, stats.intelligence, stats.charm,
+        now, now,
+      ]
     );
 
     await bootstrapCharacter(id, now);
+
+    // Create initial quarter log (birth)
+    await run(
+      `INSERT INTO quarter_logs (id, character_id, quarter_number, age_years, life_stage, mood, health, stress, money, charm, intelligence, job, job_level, event_text, created_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [nanoid(), id, 0, 0, '婴幼儿期', stats.mood, stats.health, stats.stress, stats.money, stats.charm, stats.intelligence,
+        'unemployed', 'entry', `${name}诞生了，一个崭新的生命来到了这个世界。`, now]
+    );
 
     return res.json({
       code: 200,
       message: 'ok',
       data: {
         characterId: id,
-        initialStatus: { mood: 70, health: 80, stress: 20, money: 1000, charm: 60, intelligence: 60 },
+        initialStatus: stats,
+        familyBackground: FAMILY_BACKGROUNDS[bgKey] ? FAMILY_BACKGROUNDS[bgKey].name : '普通家庭',
+        birthSeason,
+        age: 0,
       },
     });
   } catch (err) {
+    console.error('[character/create]', err);
     return res.status(500).json({ code: 500, message: 'db error', data: null });
   }
 });

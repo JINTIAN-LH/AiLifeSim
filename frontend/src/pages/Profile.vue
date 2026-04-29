@@ -7,6 +7,13 @@ const msg = ref('');
 const error = ref('');
 const loading = ref(false);
 const inheritKey = ref<'money' | 'intelligence' | 'charm' | 'mood' | 'health'>('intelligence');
+const inheritLabels: Record<string, string> = {
+  intelligence: '智力',
+  charm: '魅力',
+  money: '财富',
+  mood: '心情',
+  health: '健康',
+};
 
 async function load() {
   const characterId = localStorage.getItem('characterId');
@@ -47,7 +54,7 @@ async function restart() {
     if (newId) {
       localStorage.setItem('characterId', newId);
     }
-    msg.value = `已重启人生，继承 ${inheritKey.value}，奖励 ${res?.data?.bonus ?? 0}`;
+    msg.value = `已重启人生，继承 ${inheritLabels[inheritKey.value] || inheritKey.value}，奖励 ${res?.data?.bonus ?? 0}`;
     await load();
   } catch (e) {
     error.value = '重开失败';

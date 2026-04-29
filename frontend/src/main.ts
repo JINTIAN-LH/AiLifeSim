@@ -9,12 +9,18 @@ import NpcSocial from './pages/NpcSocial.vue';
 import Bag from './pages/Bag.vue';
 import Career from './pages/Career.vue';
 import Profile from './pages/Profile.vue';
+import TimelinePage from './pages/TimelinePage.vue';
+import LifeReview from './pages/LifeReview.vue';
+import LegacyDashboard from './pages/LegacyDashboard.vue';
 
 const router = createRouter({
   history: createWebHistory(),
   routes: [
     { path: '/', component: Home },
     { path: '/create', component: CreateRole },
+    { path: '/timeline', component: TimelinePage },
+    { path: '/review', component: LifeReview },
+    { path: '/legacy', component: LegacyDashboard },
     { path: '/status', component: Status },
     { path: '/npc', component: NpcSocial },
     { path: '/bag', component: Bag },

@@ -5,6 +5,13 @@ import { getStatus } from '../services/api';
 const status = ref<any>(null);
 const error = ref('');
 
+const taskLabels: Record<string, string> = {
+  work_once: '工作一次',
+  chat_once: '社交一次',
+  use_item_once: '使用道具',
+  advance_once: '推进季度',
+};
+
 function barWidth(value: number | undefined) {
   return `${Math.min(100, Math.max(0, Number(value ?? 0)))}%`;
 }
@@ -81,8 +88,8 @@ onMounted(async () => {
         <ul class="list-reset" style="display: grid; gap: 8px;">
           <li v-for="task in status.tasks || []" :key="task.id" class="card" style="padding: 10px;">
             <div style="display: flex; justify-content: space-between; gap: 10px;">
-              <strong>{{ task.task_code }}</strong>
-              <span :style="{ color: task.status === 'done' ? '#2f9e63' : '#72675a' }">{{ task.status }}</span>
+              <strong>{{ taskLabels[task.task_code] || task.task_code }}</strong>
+              <span :style="{ color: task.status === 'done' ? '#2f9e63' : '#72675a' }">{{ task.status === 'done' ? '已完成' : '进行中' }}</span>
             </div>
             <div class="page-hint" style="margin-top: 6px;">进度 {{ task.progress }}/{{ task.target }}</div>
           </li>

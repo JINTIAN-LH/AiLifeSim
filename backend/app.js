@@ -24,6 +24,7 @@ app.use('/api/npc', require('./routes/npc'));
 app.use('/api/event', require('./routes/event'));
 app.use('/api/character', require('./routes/achievement'));
 app.use('/api/career', require('./routes/career'));
+app.use('/api/life', require('./routes/life'));
 
 app.use((err, req, res, next) => {
   if (err && err.type === 'entity.parse.failed') {

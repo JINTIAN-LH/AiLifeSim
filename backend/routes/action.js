@@ -3,11 +3,59 @@ const { nanoid } = require('nanoid');
 const { get, run } = require('../db/sqlite');
 const { chooseEventTypeByStatus, eventFallback } = require('../services/fallbackService');
 const { progressTask, unlockAchievement } = require('../services/progressService');
+const { ITEM_EFFECTS } = require('../services/eventContentService');
 
 const router = express.Router();
 
 function clamp(value, min, max) {
   return Math.max(min, Math.min(max, value));
+}
+
+// Apply item effect based on item_code
+function applyItemEffect(itemCode) {
+  const delta = { mood: 0, health: 0, stress: 0, money: 0, charm: 0, intelligence: 0 };
+  const effect = ITEM_EFFECTS[itemCode];
+  if (effect) {
+    Object.assign(delta, effect);
+  } else {
+    // Default: small mood boost
+    delta.mood = 5;
+  }
+  return delta;
+}
+
+// Random item drop after work/social/leisure actions
+const WORK_DROPS = [
+  { item_code: 'med_001', item_name: '基础药品', item_type: 'consumable', chance: 0.20 },
+  { item_code: 'food_001', item_name: '美食券', item_type: 'consumable', chance: 0.18 },
+  { item_code: 'book_001', item_name: '入门手册', item_type: 'skill', chance: 0.12 },
+  { item_code: 'stress_relief_001', item_name: '减压香薰', item_type: 'consumable', chance: 0.15 },
+];
+
+const SOCIAL_DROPS = [
+  { item_code: 'gift_001', item_name: '小礼物', item_type: 'social', chance: 0.28 },
+  { item_code: 'charm_item_001', item_name: '魅力配饰', item_type: 'social', chance: 0.12 },
+  { item_code: 'food_002', item_name: '精致餐券', item_type: 'consumable', chance: 0.18 },
+  { item_code: 'stress_relief_001', item_name: '减压香薰', item_type: 'consumable', chance: 0.10 },
+];
+
+async function maybeDropItem(characterId, drops) {
+  const now = new Date().toISOString();
+  for (const drop of drops) {
+    if (Math.random() < drop.chance) {
+      const existing = await get(`SELECT id, qty FROM inventory_items WHERE character_id = ? AND item_code = ?`, [characterId, drop.item_code]);
+      if (existing) {
+        await run(`UPDATE inventory_items SET qty = qty + 1, updated_at = ? WHERE id = ?`, [now, existing.id]);
+      } else {
+        await run(
+          `INSERT INTO inventory_items (id, character_id, item_code, item_name, item_type, qty, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+          [nanoid(), characterId, drop.item_code, drop.item_name, drop.item_type, 1, now, now]
+        );
+      }
+      return drop;
+    }
+  }
+  return null;
 }
 
 function applyAction(row, actionType) {
@@ -72,6 +120,10 @@ router.post('/do', (req, res) => {
         await unlockAchievement(characterId, 'first_job');
       }
 
+      // Random item drop based on action type
+      const drops = actionType === 'work' ? WORK_DROPS : actionType === 'social' ? SOCIAL_DROPS : null;
+      const droppedItem = drops ? await maybeDropItem(characterId, drops) : null;
+
       let triggeredEvent = null;
       if (Math.random() < 0.35 || next.stress >= 70 || next.health <= 35) {
         const type = chooseEventTypeByStatus(next);
@@ -101,6 +153,7 @@ router.post('/do', (req, res) => {
             intelligence: next.intelligence - row.intelligence,
           },
           triggeredEvent,
+          droppedItem,
         },
       });
     } catch (err) {
@@ -126,16 +179,7 @@ router.post('/use-item', async (req, res) => {
       return res.status(400).json({ code: 400, message: 'item not available', data: null });
     }
 
-    const delta = { mood: 0, health: 0, stress: 0, money: 0, charm: 0, intelligence: 0 };
-    if (item.item_code === 'med_001') {
-      delta.health = 12;
-      delta.stress = -6;
-    } else if (item.item_code === 'book_001') {
-      delta.intelligence = 3;
-      delta.stress = 2;
-    } else {
-      delta.mood = 5;
-    }
+    const delta = applyItemEffect(item.item_code);
 
     const next = {
       mood: clamp(character.mood + delta.mood, 0, 100),

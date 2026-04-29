@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npx kill-port *)",
+      "Bash(node app.js)",
+      "Bash(curl -s -X POST http://localhost:3000/api/character/create -H \"Content-Type: application/json\" -d \"{\\\\\"name\\\\\":\\\\\"测试LLM\\\\\",\\\\\"gender\\\\\":\\\\\"female\\\\\",\\\\\"familyBackground\\\\\":\\\\\"ordinary\\\\\"}\")",
+      "Bash(node server.js)",
+      "Bash(curl -s http://localhost:3000/api/life/events-pool-info)",
+      "Bash(python3 -m json.tool)",
+      "Bash(curl -s \"http://localhost:3000/api/life/llm-context?characterId=yrdN1MUSHgRe0Q_eFxt_Q\")",
+      "Bash(curl -s -X POST http://localhost:3000/api/life/custom-event -H \"Content-Type: application/json\" -d \"{\\\\\"characterId\\\\\":\\\\\"yrdN1MUSHgRe0Q_eFxt_Q\\\\\",\\\\\"event_text\\\\\":\\\\\"你收到一封神秘的来信，信封上写着'给未来的自己'。\\\\\",\\\\\"category\\\\\":\\\\\"fate\\\\\",\\\\\"options\\\\\":[{\\\\\"option\\\\\":\\\\\"拆开看看\\\\\",\\\\\"result\\\\\":\\\\\"信中是你三年前写给自己的目标清单，你已经完成了大半。\\\\\",\\\\\"status_change\\\\\":{\\\\\"mood\\\\\":5}},{\\\\\"option\\\\\":\\\\\"先放一边\\\\\",\\\\\"result\\\\\":\\\\\"你虽然好奇但还是先忙别的事了。\\\\\",\\\\\"status_change\\\\\":{\\\\\"stress\\\\\":2}}]}\")"
+    ]
+  }
+}
