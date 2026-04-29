@@ -203,7 +203,14 @@ export async function advanceQuarter(payload: { characterId: string }) {
   );
 }
 
-export async function resolveEvent(payload: { characterId: string; quarterNumber: number; eventCode: string; optionIndex: number }) {
+export async function resolveEvent(payload: {
+  characterId: string;
+  quarterNumber: number;
+  eventCode: string;
+  optionIndex: number;
+  eventText?: string;
+  options?: ResolveEventOption[];
+}) {
   return withFallback(
     async () => { const r = await api.post('/api/life/resolve-event', payload); return r.data; },
     () => GameEngine.resolveEvent(payload.characterId, payload.quarterNumber, payload.eventCode, payload.optionIndex),
@@ -244,6 +251,14 @@ export interface CustomEventOption {
   option: string;
   result: string;
   status_change?: Record<string, number>;
+}
+
+export interface ResolveEventOption {
+  option: string;
+  result: string;
+  status_change?: Record<string, number>;
+  milestone_key?: string;
+  item_bonus?: any;
 }
 
 export async function submitCustomEvent(payload: {

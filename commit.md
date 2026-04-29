@@ -50,3 +50,16 @@
   - Workspace check passed (`npm run check`).
 - Notes:
   - Local runtime DB file changed during verification and is intentionally excluded from this commit.
+
+## 2026-04-29  Fix resolve-event 400 and option undefined crash
+- Branch: master
+- Type: fix
+- Summary:
+  - Pass event context from timeline UI when resolving events to support custom events not present in static backend pools.
+  - Update backend `POST /api/life/resolve-event` to resolve custom/generated events from request payload when static lookup misses.
+  - Add frontend guards to prevent dereferencing undefined event options after failed resolve requests.
+- Verification:
+  - Frontend build passed (`npm --prefix frontend run build`).
+  - Backend app bootstrap check passed (`node -e "require('./backend/app'); console.log('backend app load ok')"`).
+- Notes:
+  - Local runtime DB file changed during verification and is intentionally excluded from this commit.

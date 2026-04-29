@@ -149,6 +149,12 @@ async function chooseEvent(eventCode: string, optionIndex: number) {
   const characterId = localStorage.getItem('characterId');
   if (!characterId) return;
 
+  const targetEvent = currentEvents.value.find(e => e.event_code === eventCode);
+  if (!targetEvent) {
+    error.value = '事件不存在或已被处理';
+    return;
+  }
+
   loading.value = true;
   try {
     const res = await resolveEvent({
@@ -156,11 +162,18 @@ async function chooseEvent(eventCode: string, optionIndex: number) {
       quarterNumber: status.value?.character?.quarters_lived || 0,
       eventCode,
       optionIndex,
+      eventText: targetEvent.event_text,
+      options: targetEvent.options,
     });
     const data = res?.data;
+    const chosenOption = data?.option;
+    if (!chosenOption) {
+      error.value = res?.message || '事件选择失败';
+      return;
+    }
     resolvedEvents.value.push({
-      event: currentEvents.value.find(e => e.event_code === eventCode)!,
-      chosenOption: data?.option,
+      event: targetEvent,
+      chosenOption,
       idx: optionIndex,
     });
 
@@ -364,7 +377,7 @@ onMounted(async () => {
 
     <!-- 已解决事件结果 -->
     <div v-for="(res, ridx) in resolvedEvents" :key="'r' + ridx" class="event-result">
-      <strong>{{ res.chosenOption.option }}</strong>：{{ res.chosenOption.result }}
+      <strong>{{ res.chosenOption?.option || '已选择' }}</strong>：{{ res.chosenOption?.result || '结果处理中' }}
     </div>
 
     <!-- 死亡遮罩 -->

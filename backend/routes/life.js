@@ -253,7 +253,7 @@ router.post('/advance', async (req, res) => {
 
 // POST /api/life/resolve-event — resolve event choice
 router.post('/resolve-event', async (req, res) => {
-  const { characterId, quarterNumber, eventCode, optionIndex } = req.body || {};
+  const { characterId, quarterNumber, eventCode, optionIndex, eventText, options: requestOptions } = req.body || {};
   if (!characterId || optionIndex === undefined) {
     return res.status(400).json({ code: 400, message: 'characterId and optionIndex required', data: null });
   }
@@ -270,11 +270,20 @@ router.post('/resolve-event', async (req, res) => {
       if (found) { event = found; break; }
     }
 
+    // Custom/generated events may not be in the static pool; allow client-provided options.
+    if (!event && Array.isArray(requestOptions) && requestOptions.length > 0) {
+      event = {
+        event_code: eventCode,
+        event_text: eventText || '自定义事件',
+        options: requestOptions,
+      };
+    }
+
     if (!event) {
       return res.status(400).json({ code: 400, message: 'event not found', data: null });
     }
 
-    const option = event.options[optionIndex];
+    const option = Array.isArray(event.options) ? event.options[optionIndex] : null;
     if (!option) {
       return res.status(400).json({ code: 400, message: 'invalid optionIndex', data: null });
     }
