@@ -8,12 +8,26 @@ initDb();
 
 const app = express();
 app.use(express.json());
-app.use(
-  cors({
-    origin: process.env.CORS_ORIGIN || '*',
-    credentials: true,
-  })
-);
+
+const corsOriginRaw = process.env.CORS_ORIGIN || '*';
+const allowAllOrigins = corsOriginRaw === '*';
+const allowedOrigins = corsOriginRaw
+  .split(',')
+  .map((o) => o.trim())
+  .filter(Boolean);
+
+const corsOptions = {
+  origin(origin, callback) {
+    // Allow non-browser tools and same-origin requests without Origin header.
+    if (!origin) return callback(null, true);
+    if (allowAllOrigins || allowedOrigins.includes(origin)) return callback(null, true);
+    return callback(null, false);
+  },
+  credentials: true,
+};
+
+app.use(cors(corsOptions));
+app.options('*', cors(corsOptions));
 
 app.get('/health', (req, res) => {
   res.json({ code: 200, message: 'ok', data: { status: 'up' } });

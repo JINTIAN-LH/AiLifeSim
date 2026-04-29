@@ -1,25 +1,50 @@
 import axios from 'axios';
 import { GameEngine } from './gameEngine';
 
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000';
+
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000',
+  baseURL: API_BASE_URL,
   timeout: 5000,
 });
 
 // Track whether backend is reachable
 let backendAvailable = true;
 let backendChecked = false;
+let lastBackendCheckAt = 0;
+let offlineLogged = false;
+const BACKEND_RECHECK_MS = 30_000;
+
+function markBackendOffline() {
+  backendAvailable = false;
+  backendChecked = true;
+  lastBackendCheckAt = Date.now();
+  if (!offlineLogged) {
+    console.log('[api] 后端不可用，使用本地游戏引擎。');
+    offlineLogged = true;
+  }
+}
+
+function markBackendOnline() {
+  backendAvailable = true;
+  backendChecked = true;
+  lastBackendCheckAt = Date.now();
+  offlineLogged = false;
+}
 
 async function checkBackend(): Promise<boolean> {
-  if (backendChecked) return backendAvailable;
+  const now = Date.now();
+  if (backendChecked && now - lastBackendCheckAt < BACKEND_RECHECK_MS) return backendAvailable;
   try {
-    await api.get('/health', { timeout: 2000 });
-    backendAvailable = true;
+    await api.get('/health', {
+      timeout: 6000,
+      withCredentials: false,
+      headers: { 'Cache-Control': 'no-cache' },
+    });
+    markBackendOnline();
   } catch {
-    backendAvailable = false;
-    console.log('[api] 后端不可用，使用本地游戏引擎。');
+    markBackendOffline();
   }
-  backendChecked = true;
   return backendAvailable;
 }
 
@@ -29,7 +54,7 @@ async function withFallback<T>(backendCall: () => Promise<T>, fallbackCall: () =
   try {
     return await backendCall();
   } catch {
-    backendAvailable = false;
+    markBackendOffline();
     return fallbackCall();
   }
 }

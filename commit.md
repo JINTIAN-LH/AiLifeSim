@@ -25,3 +25,16 @@
   - `git ls-files | findstr /I "node_modules"` returns no tracked dependency files.
 - Notes:
   - A local backup branch is created before rewrite.
+
+## 2026-04-29  Stabilize API fallback and CORS for degraded mode
+- Branch: master
+- Type: fix
+- Summary:
+  - Harden backend CORS handling to better support browser cross-origin requests.
+  - Improve frontend backend health-check with timed recheck and cleaner offline fallback behavior.
+  - Preserve local game engine fallback while preventing one-time failure from locking permanent offline mode.
+- Verification:
+  - Frontend build passed (`npm --prefix frontend run build`).
+  - Backend app bootstrap check passed (`node -e "require('./backend/app'); console.log('backend app load ok')"`).
+- Notes:
+  - Local runtime DB file changed during verification and is intentionally excluded from this commit.
