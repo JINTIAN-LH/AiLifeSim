@@ -123,7 +123,7 @@ router.get('/status', async (req, res) => {
   try {
     const character = await get(`SELECT * FROM characters WHERE id = ?`, [characterId]);
     if (!character) {
-      return res.status(400).json({ code: 400, message: 'character not found', data: null });
+      return res.status(404).json({ code: 404, message: 'character not found', data: null });
     }
 
     await ensureDailyTasks(characterId);

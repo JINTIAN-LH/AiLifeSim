@@ -38,3 +38,15 @@
   - Backend app bootstrap check passed (`node -e "require('./backend/app'); console.log('backend app load ok')"`).
 - Notes:
   - Local runtime DB file changed during verification and is intentionally excluded from this commit.
+
+## 2026-04-29  Fix false offline fallback on business errors
+- Branch: master
+- Type: fix
+- Summary:
+  - Update frontend API fallback logic to treat 4xx as business errors instead of backend outage.
+  - Keep backend connectivity status online for 4xx responses, and only switch offline on network/no-response/5xx errors.
+  - Return 404 (instead of 400) for `GET /api/character/status` when character does not exist.
+- Verification:
+  - Workspace check passed (`npm run check`).
+- Notes:
+  - Local runtime DB file changed during verification and is intentionally excluded from this commit.

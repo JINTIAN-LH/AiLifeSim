@@ -32,6 +32,14 @@ function markBackendOnline() {
   offlineLogged = false;
 }
 
+function isBackendUnavailableError(error: unknown): boolean {
+  if (!axios.isAxiosError(error)) return true;
+  // No HTTP response typically means CORS/network/timeout/DNS issues.
+  if (!error.response) return true;
+  const status = Number(error.response.status || 0);
+  return status >= 500;
+}
+
 async function checkBackend(): Promise<boolean> {
   const now = Date.now();
   if (backendChecked && now - lastBackendCheckAt < BACKEND_RECHECK_MS) return backendAvailable;
@@ -53,8 +61,13 @@ async function withFallback<T>(backendCall: () => Promise<T>, fallbackCall: () =
   if (!(await checkBackend())) return fallbackCall();
   try {
     return await backendCall();
-  } catch {
-    markBackendOffline();
+  } catch (error) {
+    if (isBackendUnavailableError(error)) {
+      markBackendOffline();
+    } else {
+      // 4xx is treated as backend reachable business error; keep connectivity online.
+      markBackendOnline();
+    }
     return fallbackCall();
   }
 }
